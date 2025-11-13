@@ -44,6 +44,7 @@ namespace detail {
 		}
 
 		std::vector<T>& get_array() { return array;}
+
 		size_t size() const { return lenght;}
 		
 	private:

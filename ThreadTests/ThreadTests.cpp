@@ -10,6 +10,7 @@
 #include "Array.hpp"
 #include "Timer.hpp"
 #include "ThreadPool.hpp"
+#include "MatrixParalel.hpp"
 
 /*
 Set of benchmark programs to evaluate the performance of a multicore processor.
@@ -22,10 +23,7 @@ using std::cin;
 using detail::Timer;
 using detail::Array;
 using detail::ThreadPool;
-
-/// <summary>
-/// THREAD EXECUTOR
-/// </summary>
+using detail::Matrix;
 
 class Tests {
 
@@ -87,18 +85,10 @@ public:
 
 int main()
 {
-	Timer timer;
-	ThreadPool tp(16);
-	std::atomic<int> atm{ 0 };
-	for (int i = 0; i < 1000000; ++i) {
-		tp.add_task([&]() {++atm; });
-	}
+	Matrix mat(4,1, 0, 100);
 
-	tp.shut_down();
-	tp.await_termination();
+	mat.print_matrix();
 
-	cout << atm<<"\n";
-	cout << timer.end_timer();
 	return 0;
 }
 
