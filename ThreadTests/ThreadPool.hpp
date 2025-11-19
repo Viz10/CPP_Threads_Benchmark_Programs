@@ -47,10 +47,7 @@ namespace detail {
 		}
 
 		// jthread destructors automatically request_stop and notify
-		~ThreadPool() {
-			shut_down();
-			await_termination(); /// for safety 
-		}
+		~ThreadPool() {}
 
 	private:
 
