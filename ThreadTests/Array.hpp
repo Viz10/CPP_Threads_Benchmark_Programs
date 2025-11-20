@@ -40,7 +40,7 @@ namespace detail {
 
 		void print_array() {
 			for (const auto& val : array)
-				std::print("{}\n", val);
+				std::print("{} ", val);
 		}
 
 		std::vector<T>& get_array() { return array;}

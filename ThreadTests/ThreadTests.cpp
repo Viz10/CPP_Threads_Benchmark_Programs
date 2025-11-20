@@ -6,6 +6,8 @@
 #include <random>
 #include <print>
 #include <cassert>
+#include <future>
+#include <array>
 
 #include "Array.hpp"
 #include "Timer.hpp"
@@ -59,8 +61,8 @@ public:
 
 		Array array(_size, 10000, 1000000);
 		const auto& arr = array.get_array();
-		int size = arr.size();
-		int chunk_size = size / nr_threads;
+		size_t size = arr.size();
+		size_t chunk_size = size / nr_threads;
 
 		Timer global;
 
@@ -92,7 +94,7 @@ public:
 		{
 			std::vector<std::jthread> threads;
 			for (int i = 0; i < nr_threads; ++i) {
-				int end = (i == nr_threads - 1) ? size : (i + 1) * chunk_size; /// last thread gets end of array
+				size_t end = (i == nr_threads - 1) ? size : (i + 1) * chunk_size; /// last thread gets end of array
 				threads.emplace_back(func, i, i * chunk_size, end);
 			}
 		} /// RAII join jthread , after this all threads have succesfully computed and written time result
@@ -104,7 +106,6 @@ public:
 		std::copy(thread_results.begin(), thread_results.end(),out);
 
 	}
-	
 	void matrixMultiplication(size_t nr_threads, size_t rowsA, size_t columnsA, size_t rowsB, size_t columnsB) {
 
 		if (columnsA != rowsB) { std::print("Size of line elements for A just be equal to size of column elements for B"); exit(-1); }
@@ -150,12 +151,68 @@ public:
 		Result.print_matrix();
 
 	}
+	
+	void merge_sort(auto* _array, auto* _result, size_t st, size_t dr) {
+		if (st >= dr) return;
+
+		size_t mij = (st + dr) / 2;
+
+		auto& array = *_array;
+		auto& result = *_result;
+
+		if (dr - st + 1 > _array->size()/100) {
+
+			std::array<std::future<void>, 2> threads { 
+			std::async(std::launch::async, [=]() {merge_sort(_array, _result, st, mij); }),
+			std::async(std::launch::async, [=]() {merge_sort(_array, _result, mij+1, dr); }) };
+			
+			threads[0].get();
+			threads[1].get();
+		} 
+		else {
+			merge_sort(_array, _result, st, mij);
+			merge_sort(_array, _result, mij + 1, dr);
+		}
+		
+		size_t ind1=st,ind2=mij+1,cnt=st;
+
+		while (ind1 <= mij && ind2 <= dr) {
+			if (array[ind1] <= array[ind2]) 
+				result[cnt++] = array[ind1++];
+			else
+				result[cnt++] = array[ind2++];
+		}
+
+		while(ind1 <= mij)
+			result[cnt++] = array[ind1++];
+
+		while (ind2 <= dr)
+			result[cnt++] = array[ind2++];
+
+		for (size_t i = st; i <= dr; ++i)
+			array[i] = result[i];
+	}
+	void sortArrayParalel(size_t _size) {
+		
+		Array array(_size, 0, 100000000);
+
+		Timer timer;
+
+		auto& arr = array.get_array();
+		std::vector<int> aux(_size);
+
+		merge_sort(&arr, &aux, 0, _size - 1);
+
+		//array.print_array();
+
+		cout<<timer.end_timer();
+	}
 };
 
 int main()
 {
 	Tests t;
-	t.matrixMultiplication(0, 3, 3, 3, 3);
+	t.sortArrayParalel(1000000);
 
 	return 0;
 }
