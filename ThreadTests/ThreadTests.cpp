@@ -8,11 +8,16 @@
 #include <cassert>
 #include <future>
 #include <array>
+#include <numbers>
+#include <numeric>
+#include <filesystem>
+#include <fstream>
 
 #include "Array.hpp"
 #include "Timer.hpp"
 #include "ThreadPool.hpp"
 #include "MatrixParalel.hpp"
+
 
 /*
 Set of benchmark programs to evaluate the performance of a multicore processor.
@@ -53,8 +58,9 @@ using get_vector_underlying_type_t = typename get_vector_underlying_type<T>::typ
 class Tests {
 
 public:
-
+		
 	Tests() = default;
+	
 	void findMinMax(size_t const nr_threads, size_t _size) {
 		
 		assert(nr_threads > 0);
@@ -106,6 +112,7 @@ public:
 		std::copy(thread_results.begin(), thread_results.end(),out);
 
 	}
+	
 	void matrixMultiplication(size_t nr_threads, size_t rowsA, size_t columnsA, size_t rowsB, size_t columnsB) {
 
 		if (columnsA != rowsB) { std::print("Size of line elements for A just be equal to size of column elements for B"); exit(-1); }
@@ -207,48 +214,97 @@ public:
 
 		cout<<timer.end_timer();
 	}
+
+	void MonteCarloCount(size_t chunk_number,size_t iteratations, std::reference_wrapper<std::vector<size_t>> results) {
+		
+		std::random_device rd;
+		std::mt19937 rg(rd());
+		std::uniform_real_distribution<double> dist;
+
+		size_t hits{};
+
+		for (size_t i = 0; i < iteratations; ++i) {
+
+			auto X = dist(rg);
+			auto Y = dist(rg);
+
+			if (X * X + Y * Y < 1) hits += 1;
+		}
+
+		results.get()[chunk_number] = hits;
+		
+	}
+	void MonteCarloCountPiEstimation(size_t iteratations, size_t paralel_split_number) {
+
+		size_t chunk = iteratations / paralel_split_number;
+
+		std::vector<size_t> results(paralel_split_number);
+
+		{
+			ThreadPool tp(16);
+			for (size_t i{}; i < paralel_split_number; ++i) {
+				if (i == (paralel_split_number - 1)) { /// last chunk gets remaining 
+					chunk = (iteratations - i * (iteratations / paralel_split_number));
+				}
+				tp.add_task([i, chunk, ref = std::ref(results), this]() {MonteCarloCount(i, chunk, ref); });
+			}
+		} /// by this time , all computations are done . Can use result
+		
+		double result = std::accumulate(results.cbegin(), results.cend(), double{});
+		
+		result = 4.0 * result / iteratations;
+
+		std::println();
+		std::println("value: {} error: {}", result,std::abs((result - std::numbers::pi)));
+	}
+
+	void file_words_frequency() {
+		if (!std::filesystem::exists("data.txt")) {
+			cout << "file doesnt exist!\n";
+			return;
+		}
+		if (!std::filesystem::is_regular_file("data.txt")) {
+			cout << "file not a regular one\n";
+			return;
+		}
+
+		size_t size = std::filesystem::file_size("data.txt");
+
+		std::ifstream fin("data.txt");
+
+		if (!fin) {
+			cout << "coult not open file\n";
+			return;
+		}
+
+		fin.seekg(4);
+		std::array<char, 1024> arr{0};
+		fin.read(arr.data(), 3);
+
+		for (char ch : arr)
+			cout << ch;
+
+		cout << "\n";
+
+		char ch;
+		fin >> ch;
+		while (ch == ' ') {
+			fin >> ch;
+		}
+
+		fin.read(arr.data(), 4);
+
+		for (char ch : arr)
+			cout << ch;
+
+		cout << "\n";
+
+	}
 };
 
 int main()
 {
 	Tests t;
-	t.sortArrayParalel(1000000);
-
+	t.file_words_frequency();
 	return 0;
 }
-
-/*
-	template <typename T>
-	int partition(int st, int dr, std::vector<T>& array, std::unique_ptr<int[]>& times) {
-		int i = st, j = dr;
-		int mij = (st + dr) / 2;
-		int pivot = val[mij];
-		std::swap(val[mij], val[dr]);
-
-		while (i < j) {
-			while (array[i] <= pivot) {
-				i++;
-			}
-			while (array[j] >= pivot) {
-				j++;
-			}
-			if (i < j) {
-				std::swap(a[i], a[j]);
-			}
-		}
-		std::swap(val[i], val[mij]);
-
-		return i;
-
-	}
-
-	template <typename T>
-	void QuickSortHelper(int st,int dr,std::vector<T> & array,std::unique_ptr<int[]> & times){
-		if (st > dr) return;
-		else {
-			int pivot = partition(st,dr,array,times);
-			QuickSortHelper(st, pivot - 1, array, times);
-			QuickSortHelper(pivot + 1,dr, array, times);
-		}
-	}
-	*/
