@@ -65,6 +65,7 @@ public:
 
         Array array(_size, 10000, 1000000);
         const auto& arr = array.get_array();
+        
         size_t size = arr.size();
         size_t chunk_size = size / nr_threads;
 
