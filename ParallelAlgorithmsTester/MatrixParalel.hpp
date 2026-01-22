@@ -9,7 +9,7 @@ namespace detail {
 
 	template <typename T>
 	concept multicable = requires (T n) {
-		{ n* n } noexcept -> std::convertible_to<int>;
+		{ n * n } noexcept -> std::convertible_to<int>;
 	};
 
 	template <typename T>
@@ -18,7 +18,7 @@ namespace detail {
 
 		using data_type = T;
 		using reference_type = T&;
-		using const_reference_type = const T&;
+		using const_reference_type =const T&;
 
 		template<multicable Bounds>
 		Matrix(size_t rows, size_t columns, Bounds begin, Bounds end) :rows(rows), columns(columns) {
@@ -45,9 +45,9 @@ namespace detail {
 		void print_matrix() const {
 			for (const auto& row : _matrix) {
 				for (const auto& column : row) {
-					std::cout << column << " ";
+                    std::cout<<column<<" ";
 				}
-				std::cout << "\n";
+                std::cout<<"\n";
 			}
 		}
 		reference_type at(size_t row, size_t col) {
@@ -59,14 +59,14 @@ namespace detail {
 
 		std::vector<T>& operator[](size_t index) { return _matrix[index]; }
 		const std::vector<T>& operator[](size_t index) const { return _matrix[index]; }
+		
+		std::vector<T> get_column(size_t index)  { 
+			 std::vector<T> result;
+			 result.reserve(rows);
 
-		std::vector<T> get_column(size_t index) {
-			std::vector<T> result;
-			result.reserve(rows);
+			 for (const auto& line : _matrix) { result.emplace_back(line[index]); }
 
-			for (const auto& line : _matrix) { result.emplace_back(line[index]); }
-
-			return result;
+			 return result;
 		}
 
 	private:

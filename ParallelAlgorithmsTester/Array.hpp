@@ -6,7 +6,7 @@
 namespace detail {
 
 	template<typename T>
-	concept DefConstructibleOrTrivial = std::is_default_constructible_v<T>;
+	concept DefConstructibleOrTrivial =  std::is_default_constructible_v<T>;
 
 	template<DefConstructibleOrTrivial T>
 	class Array {
@@ -42,13 +42,13 @@ namespace detail {
 
 		void print_array() {
 			for (const auto& val : array)
-				std::cout << val << " ";
+                std::cout<<val<<" ";
 		}
 
-		std::vector<T>& get_array() { return array; }
+		std::vector<T>& get_array() { return array;}
 
-		size_t size() const { return lenght; }
-
+		size_t size() const { return lenght;}
+		
 	private:
 
 		size_t lenght;
@@ -60,5 +60,5 @@ namespace detail {
 	Array(std::initializer_list<U>) -> Array<U>;
 
 	template<typename Margins>
-	Array(int, Margins, Margins) -> Array<Margins>;
+	Array(int , Margins , Margins ) -> Array<Margins>;
 }
