@@ -16,20 +16,19 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-// Helper function to capture cout and update the UI
+/// Helper function to capture cout and update the UI
 void MainWindow::executeWithRedirect(std::function<void()> func) {
-    ui->plainTextEdit->clear(); // Refresh for every new problem
+    ui->plainTextEdit->clear();
 
     std::stringstream ss;
     std::streambuf* oldCout = std::cout.rdbuf(ss.rdbuf());
 
-    func(); // Execute the benchmark
+    func();
 
-    std::cout.rdbuf(oldCout); // Restore original cout
+    std::cout.rdbuf(oldCout);
     ui->plainTextEdit->setPlainText(QString::fromStdString(ss.str()));
 }
 
-// 1. Min/Max Execution
 void MainWindow::on_ExecuteMinMax_clicked() {
     executeWithRedirect([this]() {
         size_t threads = ui->threadsMinMax->text().toULong();
@@ -38,7 +37,6 @@ void MainWindow::on_ExecuteMinMax_clicked() {
     });
 }
 
-// 2. Matrix Multiplication Execution
 void MainWindow::on_ExecuteMatrixMult_clicked() {
     executeWithRedirect([this]() {
         size_t threads = ui->threadsMatrix->text().toULong();
@@ -50,16 +48,14 @@ void MainWindow::on_ExecuteMatrixMult_clicked() {
     });
 }
 
-// 3. Array Sort Execution
 void MainWindow::on_ExecuteSort_clicked() {
     executeWithRedirect([this]() {
         size_t size = ui->sortArraySize->text().toULong();
-        // Defaulting depth to 4 if not specified, or add a field for it
+        // Defaulting depth = 4
         Tests().sortArrayParalel(size, 4);
     });
 }
 
-// 4. Monte Carlo Pi Execution
 void MainWindow::on_ExecutePi_clicked() {
     executeWithRedirect([this]() {
         size_t iter = ui->MonteCarloIterations->text().toULong();
@@ -67,7 +63,7 @@ void MainWindow::on_ExecutePi_clicked() {
         Tests().MonteCarloCountPiEstimation(iter, threads);
     });
 }
-// 5. TP Benchmarking
+
 void MainWindow::on_ExecuteTP_clicked() {
     executeWithRedirect([this]() {
         size_t iter = ui->TPIterations->text().toULong();

@@ -2,7 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include <functional> // Required for std::function
+#include <functional>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -29,4 +29,4 @@ private:
 
     void executeWithRedirect(std::function<void()> func);
 };
-#endif // MAINWINDOW_H
+#endif
